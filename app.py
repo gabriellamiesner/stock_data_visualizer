@@ -1,4 +1,5 @@
 
+from datetime import date, datetime
 #API KEY 
 API_KEY = "AH4E9KX41PXBFQQI"
 
@@ -26,6 +27,11 @@ times = {
 
 #new variable is assgned based on selection
 timeSelection = times[timeSeriesSelection]
+
+startDate = input("Enter the start date: (YYYY-MM-DD) ")
+endDate = input("Enter the end date: (YYYY-MM-DD) ")
+startDate = startDate.split("-")
+print(datetime(int(startDate[0]), int(startDate[1]), int(startDate[2])))
 
 ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(timeSelection,SYMBOL,API_KEY)
 
