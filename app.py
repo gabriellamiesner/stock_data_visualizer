@@ -1,10 +1,11 @@
-
+import requests
 from datetime import date, datetime
 import time
 import pygal
 
 #API KEY 
 API_KEY = "AH4E9KX41PXBFQQI"
+
 
 #Symbol Selection 
 SYMBOL = input("Enter the stock symbol you would like to use: ")
@@ -134,5 +135,6 @@ def main():
     # Test print statements
     print(ogURL)
     print(chart)
+
 
 main()
