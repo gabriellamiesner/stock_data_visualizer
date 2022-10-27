@@ -9,6 +9,35 @@ API_KEY = "AH4E9KX41PXBFQQI"
 #Symbol Selection 
 SYMBOL = input("Enter the stock symbol you would like to use: ")
 
+def select_chart_type():
+    # Note: when calling this method, it must be set to a variable as it returns an
+    # instance of the graph selected (Line or Bar)
+
+    # Printed menu
+    print('Chart Types')
+    print('\n---------------')
+    print('1. Bar')
+    print('2. Line')
+
+    # Input validation
+    chart_selection = 0
+    while True:
+        try:
+            chart_selection = int(input('Select a chart type: '))
+            if chart_selection < 1 or chart_selection > 2:
+                print('Invalid input! Chart selection must be one of the provided options.')
+                continue
+            else:
+                break
+        except ValueError:
+            print('Invalid input! Chart selection must be a number 1 or 2.')
+
+    # Return an instance of the chart selected by the user
+    if chart_selection == 1:
+        return pygal.Line()
+    elif chart_selection == 2:
+        return pygal.Bar()
+
 def select_time_series():
     #user selection (dont know how to link user slection with a variable)
     print("Select the time series of the chart that you want generate")
@@ -50,15 +79,8 @@ def select_time_series():
         except IndexError:
             print('Invalid input! Time series selection must be a number 1-4.')
 
-
-    #startDate = input("Enter the start date: (YYYY-MM-DD) ")
-    #endDate = input("Enter the end date: (YYYY-MM-DD) ")
-    #startDate = startDate.split("-")
-    #print(datetime(int(startDate[0]), int(startDate[1]), int(startDate[2])))
-
-    ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(time_selection, SYMBOL, API_KEY)
-
     if time_series_selection == "1":    # "1" is the equivalent option for Intraday
+
         print("Time intervals")
         print("---------------")
         print("1 - 1 minute")
@@ -85,45 +107,29 @@ def select_time_series():
             except:
                 print('Invalid input! Interval selection must be a number 1, 5, 15, 30, or 60.')
 
-        ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&interval={}&apikey={}".format(time_selection, SYMBOL, interval_selection, API_KEY)
+        return [time_selection, interval_selection]
+    else:
+        return [time_selection, ""]
+    
+# -- WORK IN PROGRESS --
+# Consider returning the start and end date in a 2-index list; add input validation
+def select_beginning_end_dates():
+    start_date = input("Enter the start date: (YYYY-MM-DD) ")
+    end_date = input("Enter the end date: (YYYY-MM-DD) ")
+    start_date = start_date.split("-")
+    print(datetime(int(start_date[0]), int(start_date[1]), int(start_date[2])))
 
-        # Test print statement
-        #print(ogURL)
-
-        return ogURL
-
-def select_chart_type():
-    # Note: when calling this method, it must be set to a variable as it returns an
-    # instance of the graph selected (Line or Bar)
-
-    # Printed menu
-    print('Chart Types')
-    print('\n---------------')
-    print('1. Bar')
-    print('2. Line')
-
-    # Input validation
-    chart_selection = 0
-    while True:
-        try:
-            chart_selection = int(input('Select a chart type: '))
-            if chart_selection < 1 or chart_selection > 2:
-                print('Invalid input! Chart selection must be one of the provided options.')
-                continue
-            else:
-                break
-        except ValueError:
-            print('Invalid input! Chart selection must be a number 1 or 2.')
-
-    # Return an instance of the chart selected by the user
-    if chart_selection == 1:
-        return pygal.Line()
-    elif chart_selection == 2:
-        return pygal.Bar()
+def build_URL(time_selection):
+    if time_selection[0] != "":
+        ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&interval={}&apikey={}".format(time_selection[0], SYMBOL, time_selection[1], API_KEY)
+    else:
+        ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(time_selection[0], SYMBOL, API_KEY)
+    return ogURL
 
 def main():
-    ogURL = select_time_series()
     chart = select_chart_type()
+    time_series = select_time_series()
+    ogURL = build_URL(time_series)
 
     # Test print statements
     print(ogURL)
