@@ -7,6 +7,7 @@ import lxml
 #API KEY 
 API_KEY = "AH4E9KX41PXBFQQI"
 
+#commit test - ella 
 
 #Symbol Selection 
 SYMBOL = input("Enter the stock symbol you would like to use: ")
