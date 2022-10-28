@@ -115,10 +115,29 @@ def select_time_series():
 # -- WORK IN PROGRESS --
 # Consider returning the start and end date in a 2-index list; add input validation
 def select_beginning_end_dates():
-    start_date = input("Enter the start date: (YYYY-MM-DD) ")
-    end_date = input("Enter the end date: (YYYY-MM-DD) ")
-    start_date = start_date.split("-")
-    print(datetime(int(start_date[0]), int(start_date[1]), int(start_date[2])))
+    while True: 
+        try: 
+            start_date = input("Enter the start date: (YYYY-MM-DD) ")
+            start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+            break;
+        except ValueError:
+            print("Incorrect data format, should be YYYY-MM-DD")
+
+    while True: 
+        try: 
+            end_date = input("Enter the end date: (YYYY-MM-DD) ")
+            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+            if end_date > start_date:
+                break;
+            else: 
+                print("Incorrect data format, End date should occur after the start date.")
+        except ValueError: 
+            print("Incorrect data format, should be YYYY-MM-DD.")
+
+    # start_date = input("Enter the start date: (YYYY-MM-DD) ")
+    # end_date = input("Enter the end date: (YYYY-MM-DD) ")
+    # start_date = start_date.split("-")
+    # print(datetime(int(start_date[0]), int(start_date[1]), int(start_date[2])))
 
 def build_URL(time_selection):
     if time_selection[0] != "":
