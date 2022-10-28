@@ -1,7 +1,8 @@
-
 from datetime import date, datetime
-import time
 import pygal
+import requests
+import json
+import lxml
 
 #API KEY 
 API_KEY = "AH4E9KX41PXBFQQI"
@@ -34,9 +35,9 @@ def select_chart_type():
 
     # Return an instance of the chart selected by the user
     if chart_selection == 1:
-        return pygal.Line()
-    elif chart_selection == 2:
         return pygal.Bar()
+    elif chart_selection == 2:
+        return pygal.Line()
 
 def select_time_series():
     #user selection (dont know how to link user slection with a variable)
@@ -111,27 +112,31 @@ def select_time_series():
     else:
         return [time_selection, ""]
     
-# -- WORK IN PROGRESS --
-# Consider returning the start and end date in a 2-index list; add input validation
 def select_beginning_end_dates():
+
+    start_date = datetime.min
+    end_date = datetime.now
+
     while True: 
         try: 
             start_date = input("Enter the start date: (YYYY-MM-DD) ")
-            start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-            break;
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            break
         except ValueError:
             print("Incorrect data format, should be YYYY-MM-DD")
 
     while True: 
         try: 
             end_date = input("Enter the end date: (YYYY-MM-DD) ")
-            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
             if end_date > start_date:
-                break;
+                break
             else: 
                 print("Incorrect data format, End date should occur after the start date.")
         except ValueError: 
             print("Incorrect data format, should be YYYY-MM-DD.")
+
+    return [start_date, end_date]
 
     # start_date = input("Enter the start date: (YYYY-MM-DD) ")
     # end_date = input("Enter the end date: (YYYY-MM-DD) ")
@@ -145,13 +150,66 @@ def build_URL(time_selection):
         ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(time_selection[0], SYMBOL, API_KEY)
     return ogURL
 
+def parse_json(request_url, date_range, time_series):
+    response = requests.get(request_url).text
+    response_data = json.loads(response)
+
+    data_title = ""
+    data = []
+    if time_series[0] == "TIME_SERIES_INTRADAY":
+        # Time Series (5min)
+        data_title = "Time Series ({})".format(time_series[1])
+    elif time_series[0] == "TIME_SERIES_DAILY":
+        data_title = "Time Series (Daily)"
+    elif time_series[0] == "TIME_SERIES_WEEKLY":
+        data_title = "Weekly Adjusted Time Series"
+    elif time_series[0] == "TIME_SERIES_MONTHLY":
+        data_title = "Monthly Time Series"
+
+    for entry in response_data[data_title]:
+        date_format = '%Y-%m-%d'
+        raw_datetime = datetime.strptime(entry, date_format)
+        if raw_datetime >= date_range[0] and raw_datetime <= date_range[1]:
+            data.append({'Date':entry, 'Data':response_data[data_title][entry]})
+
+    return data
+
+def generate_coordinates(raw_data, y_title):
+    coordinates = [[], []]  # 0 index is all X values, 1 index is all Y values
+    for element in raw_data:
+        coordinates[0].append(datetime.strptime(element['Date'], '%Y-%m-%d'))
+        coordinates[1].append(float(element['Data'][y_title]))
+        # Test print statement
+        #print("X: {}\nY: {}".format(element['Date'], element['Data'][y_title]))
+    return coordinates
+
+def generate_graph(chart, open_line, high_line, low_line, close_line):
+    chart = pygal.Line()
+    chart.title = 'Test'
+    chart.x_labels = map(lambda d: d.strftime('%Y-%m-%d'), open_line[0])
+    chart.add('Open', open_line[1])
+    chart.add('High', high_line[1])
+    chart.add('Low', low_line[1])
+    chart.add('Close', close_line[1])
+    chart.render_in_browser()
+
 def main():
     chart = select_chart_type()
     time_series = select_time_series()
     ogURL = build_URL(time_series)
+    date_range = select_beginning_end_dates()   # List with start date at 0, end date at 1
 
-    # Test print statements
-    print(ogURL)
-    print(chart)
+    raw_data = parse_json(ogURL, date_range, time_series)
+    
+    open_line = generate_coordinates(raw_data, "1. open")
+    high_line = generate_coordinates(raw_data, "2. high")
+    low_line = generate_coordinates(raw_data, "3. low")
+    close_line = generate_coordinates(raw_data, "4. close")
+
+    generate_graph(chart, open_line, high_line, low_line, close_line)
 
 main()
+
+# Sources:
+# - https://www.geeksforgeeks.org/converting-string-yyyy-mm-dd-into-datetime-in-python/
+# - https://towardsdatascience.com/json-and-apis-with-python-fba329ef6ef0
