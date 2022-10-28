@@ -7,6 +7,7 @@ import lxml
 #API KEY 
 API_KEY = "AH4E9KX41PXBFQQI"
 
+
 #Symbol Selection 
 SYMBOL = input("Enter the stock symbol you would like to use: ")
 
@@ -145,6 +146,7 @@ def select_beginning_end_dates():
 
 def build_URL(time_selection):
     if time_selection[0] != "":
+        global ogURL
         ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&interval={}&apikey={}".format(time_selection[0], SYMBOL, time_selection[1], API_KEY)
     else:
         ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(time_selection[0], SYMBOL, API_KEY)
