@@ -17,8 +17,8 @@ def select_chart_type():
     # instance of the graph selected (Line or Bar)
 
     # Printed menu
-    print('Chart Types')
-    print('\n---------------')
+    print('\nChart Types')
+    print('---------------')
     print('1. Bar')
     print('2. Line')
 
@@ -37,13 +37,13 @@ def select_chart_type():
 
     # Return an instance of the chart selected by the user
     if chart_selection == 1:
-        return pygal.Bar()
+        return "Bar"
     elif chart_selection == 2:
-        return pygal.Line()
+        return "Line"
 
 def select_time_series():
-    #user selection (dont know how to link user slection with a variable)
-    print("Select the time series of the chart that you want generate")
+    #user selection
+    print("\nSelect the time series of the chart that you want generate")
     print("----------------------------------------------------------")
     print("1. Intraday")
     print("2. Daily")
@@ -51,12 +51,12 @@ def select_time_series():
     print("4. Monthly")
 
     #dictionary of all the choices
-    times = {
-        "Intraday" : "TIME_SERIES_INTRADAY",
-        "Daily" : "TIME_SERIES_DAILY",
-        "Weekly" : "TIME_SERIES_WEEKLY",
-        "Monthly" : "TIME_SERIES_MONTHLY",
-    }
+    # times = {
+    #     "Intraday" : "TIME_SERIES_INTRADAY",
+    #     "Daily" : "TIME_SERIES_DAILY",
+    #     "Weekly" : "TIME_SERIES_WEEKLY",
+    #     "Monthly" : "TIME_SERIES_MONTHLY",
+    # }
 
     # List of choices (so choice is accessible via index)
     time_choices = ["TIME_SERIES_INTRADAY", "TIME_SERIES_DAILY", "TIME_SERIES_WEEKLY", "TIME_SERIES_MONTHLY"]
@@ -84,7 +84,7 @@ def select_time_series():
 
     if time_series_selection == "1":    # "1" is the equivalent option for Intraday
 
-        print("Time intervals")
+        print("\nTime intervals")
         print("---------------")
         print("1 - 1 minute")
         print("5 - 5 minutes")
@@ -121,7 +121,7 @@ def select_beginning_end_dates():
 
     while True: 
         try: 
-            start_date = input("Enter the start date: (YYYY-MM-DD) ")
+            start_date = input("\nEnter the start date (YYYY-MM-DD): ")
             start_date = datetime.strptime(start_date, '%Y-%m-%d')
             break
         except ValueError:
@@ -129,7 +129,7 @@ def select_beginning_end_dates():
 
     while True: 
         try: 
-            end_date = input("Enter the end date: (YYYY-MM-DD) ")
+            end_date = input("Enter the end date (YYYY-MM-DD): ")
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
             if end_date > start_date:
                 break
@@ -165,12 +165,17 @@ def parse_json(request_url, date_range, time_series):
     elif time_series[0] == "TIME_SERIES_DAILY":
         data_title = "Time Series (Daily)"
     elif time_series[0] == "TIME_SERIES_WEEKLY":
-        data_title = "Weekly Adjusted Time Series"
+        data_title = "Weekly Time Series"
     elif time_series[0] == "TIME_SERIES_MONTHLY":
         data_title = "Monthly Time Series"
 
-    for entry in response_data[data_title]:
+    date_format = ''
+    if data_title == "Time Series ({})".format(time_series[1]):
+        date_format = '%Y-%m-%d %H:%M:%S'
+    else:
         date_format = '%Y-%m-%d'
+
+    for entry in response_data[data_title]:
         raw_datetime = datetime.strptime(entry, date_format)
         if raw_datetime >= date_range[0] and raw_datetime <= date_range[1]:
             data.append({'Date':entry, 'Data':response_data[data_title][entry]})
@@ -179,16 +184,31 @@ def parse_json(request_url, date_range, time_series):
 
 def generate_coordinates(raw_data, y_title):
     coordinates = [[], []]  # 0 index is all X values, 1 index is all Y values
+    date_format = '%Y-%m-%d'
+    try:
+        test_coordinate = datetime.strptime(raw_data[0]['Date'], date_format)
+    except ValueError:
+        date_format = '%Y-%m-%d %H:%M:%S'
+
     for element in raw_data:
-        coordinates[0].append(datetime.strptime(element['Date'], '%Y-%m-%d'))
+        coordinates[0].append(datetime.strptime(element['Date'], date_format))
         coordinates[1].append(float(element['Data'][y_title]))
         # Test print statement
         #print("X: {}\nY: {}".format(element['Date'], element['Data'][y_title]))
     return coordinates
 
-def generate_graph(chart, open_line, high_line, low_line, close_line):
-    chart = pygal.Line()
-    chart.title = 'Test'
+def generate_graph(chart_type, open_line, high_line, low_line, close_line):
+    chart = pygal.Bar()
+    if chart_type == "Line":
+        chart = pygal.Line()
+
+    # date_format('%Y-%m-%d')
+    # try:
+    #     test_point = datetime.strptime(open_line[0][0], date_format)
+    # except ValueError:
+    #     date_format = '%Y-%m-%d %H:%M:%S'
+    
+    chart.title = 'Stock Data for {}: {} to {}'.format(SYMBOL, open_line[0][0], open_line[0][-1])
     chart.x_labels = map(lambda d: d.strftime('%Y-%m-%d'), open_line[0])
     chart.add('Open', open_line[1])
     chart.add('High', high_line[1])
