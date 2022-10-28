@@ -1,5 +1,4 @@
-
-from datetime import date, datetime
+import datetime
 #API KEY 
 API_KEY = "AH4E9KX41PXBFQQI"
 
@@ -27,11 +26,32 @@ times = {
 
 #new variable is assgned based on selection
 timeSelection = times[timeSeriesSelection]
+while True: 
+    try: 
+        startDate = input("Enter the start date: (YYYY-MM-DD) ")
+        startDate = datetime.datetime.strptime(startDate, '%Y-%m-%d')
+        break;
+    except ValueError:
+        print("Incorrect data format, should be YYYY-MM-DD")
 
-startDate = input("Enter the start date: (YYYY-MM-DD) ")
-endDate = input("Enter the end date: (YYYY-MM-DD) ")
-startDate = startDate.split("-")
-print(datetime(int(startDate[0]), int(startDate[1]), int(startDate[2])))
+while True: 
+    try: 
+        endDate = input("Enter the end date: (YYYY-MM-DD) ")
+        endDate = datetime.datetime.strptime(endDate, '%Y-%m-%d')
+        if endDate > startDate:
+            break;
+        else: 
+            print("Incorrect data format, End date should occur after the start date.")
+    except ValueError: 
+        print("Incorrect data format, should be YYYY-MM-DD.")
+
+
+
+
+
+# print(datetime(int(startDate[0]), int(startDate[1]), int(startDate[2])))
+
+
 
 ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(timeSelection,SYMBOL,API_KEY)
 
