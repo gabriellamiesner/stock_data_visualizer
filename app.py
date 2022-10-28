@@ -1,4 +1,6 @@
+from urllib import request
 import requests
+import json
 from datetime import date, datetime
 import time
 import pygal
@@ -117,6 +119,7 @@ def select_time_series():
 def select_beginning_end_dates():
     while True: 
         try: 
+            global start_date
             start_date = input("Enter the start date: (YYYY-MM-DD) ")
             start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
             break;
@@ -125,6 +128,7 @@ def select_beginning_end_dates():
 
     while True: 
         try: 
+            global end_date
             end_date = input("Enter the end date: (YYYY-MM-DD) ")
             end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
             if end_date > start_date:
@@ -141,10 +145,25 @@ def select_beginning_end_dates():
 
 def build_URL(time_selection):
     if time_selection[0] != "":
+        global ogURL
         ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&interval={}&apikey={}".format(time_selection[0], SYMBOL, time_selection[1], API_KEY)
     else:
         ogURL = "https://www.alphavantage.co/query?function={}&symbol={}&apikey={}".format(time_selection[0], SYMBOL, API_KEY)
     return ogURL
+
+def parse_Json():
+    request_url = ogURL
+    response = requests.get(request_url).text
+    response_data = json.loads(response)
+
+    data = []
+# !! Note: Each time series has a different name for the value used below; it will need to change dynamically
+    for entry in response_data['Weekly Adjusted Time Series']:
+        date_format = '%Y-%m-%d'
+        raw_datetime = datetime.strptime(entry, date_format)
+    if raw_datetime >= start_date and raw_datetime <= end_date:
+        data.append({'Date':entry, 'Data':response_data['Weekly Adjusted Time Series'][entry]})
+
 
 def main():
     chart = select_chart_type()
@@ -154,6 +173,7 @@ def main():
     # Test print statements
     print(ogURL)
     print(chart)
+
 
 
 main()
